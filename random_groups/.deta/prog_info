@@ -1,0 +1,1 @@
+{"id":"a37ac123-d1bf-40d0-ab5d-c75aa083c93f","space":23979,"runtime":"python3.9","name":"random_groups","path":"cwx9fv","project":"c0xjqefe","account":"144798365827","region":"ap-southeast-1","deps":["fastapi==0.88.0"],"envs":null,"public":true,"log_level":"off","cron":""}
