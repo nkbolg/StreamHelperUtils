@@ -2,19 +2,22 @@ import os
 import subprocess
 from dataclasses import dataclass
 
-image_template = """magick -gravity center -background black -fill white -size 852x480 -font /System/Library/Fonts/MarkerFelt.ttc caption:"{}" short.png"""
+image_template = """magick -gravity center -background black -fill white -size 1920x1080 -font /System/Library/Fonts/MarkerFelt.ttc caption:"{}" short.png"""
 
 cmd1_template = """ffmpeg -i "{input_file}" -i short.png -filter_complex "
-       color=c=black:size=852x480 [temp]; \
+       color=c=black:size=1920x1080 [temp]; \
        [temp][1:v] overlay=x=0:y=0:enable='between(t,0,1)' [temp]; \
-       [0:v] setpts=PTS+1/TB, scale=852x480:force_original_aspect_ratio=decrease, pad=852:480:-1:-1:color=black [v:0]; \
+       [0:v] setpts=PTS+1/TB, scale=1920x1080:force_original_aspect_ratio=decrease, pad=1920:1080:-1:-1:color=black [v:0]; \
        [temp][v:0] overlay=x=0:y=0:shortest=1:enable='gt(t,1)' [v]; \
        [0:a] asetpts=PTS+1/TB [a]" -map [v] -map [a] "{out_file}.mp4" """
 
 cut_piece_template = "ffmpeg -ss {start_time} -to {end_time} -i \"{input_file}\" -c copy \"{out_file}\""
-in_file = "2023-01-06 20-00-01.mkv"
 
-os.chdir('stream_06.01.2023')
+dir_name = input("Dir name: ")
+# in_file = "2023-01-06 20-00-01.mkv"
+in_file = input("input file name: ")
+os.chdir(dir_name)
+
 
 @dataclass
 class Part:
@@ -45,7 +48,6 @@ def fmt_time(time: str) -> str:
         raise RuntimeError("Unexpected time str: " + time)
 
 
-
 for part in parts:
     print(f"Processing {part.title}")
 
@@ -56,21 +58,12 @@ for part in parts:
                                         input_file=in_file,
                                         out_file=piece_filename)
 
-    print(cut_cmd)
-    result = subprocess.run(cut_cmd, shell=True)
-    if result.returncode != 0:
-        # handle the error
-        raise RuntimeError("Stop")
+    subprocess.run(cut_cmd, shell=True, check=True)
 
     image_cmd = image_template.format(part.title)
-    print(image_cmd)
-    result = subprocess.run(image_cmd, shell=True)
-    if result.returncode != 0:
-        # handle the error
-        raise RuntimeError("Stop")
+
+    subprocess.run(image_cmd, shell=True, check=True)
+
     cmd1 = cmd1_template.format(input_file=piece_filename, out_file=part.title + '_out')
-    print(cmd1)
-    result = subprocess.run(cmd1, shell=True)
-    if result.returncode != 0:
-        # handle the error
-        raise RuntimeError("Stop")
+
+    subprocess.run(cmd1, shell=True, check=True)
