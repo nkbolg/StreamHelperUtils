@@ -2,14 +2,16 @@ import os
 import subprocess
 from dataclasses import dataclass
 
-image_template = """magick -gravity center -background black -fill white -size 1920x1080 -font /System/Library/Fonts/MarkerFelt.ttc caption:"{}" short.png"""
+resolution = 768, 432
 
-cmd1_template = """ffmpeg -i "{input_file}" -i short.png -filter_complex "
-       color=c=black:size=1920x1080 [temp]; \
+image_template = f"""convert -gravity center -background black -fill white -size {resolution[0]}x{resolution[1]} caption:"{{}}" short.png"""
+
+cmd1_template = f"""ffmpeg -i "{{input_file}}" -i short.png -filter_complex "
+       color=c=black:size={resolution[0]}x{resolution[1]} [temp]; \
        [temp][1:v] overlay=x=0:y=0:enable='between(t,0,1)' [temp]; \
-       [0:v] setpts=PTS+1/TB, scale=1920x1080:force_original_aspect_ratio=decrease, pad=1920:1080:-1:-1:color=black [v:0]; \
+       [0:v] setpts=PTS+1/TB, scale={resolution[0]}x{resolution[1]}:force_original_aspect_ratio=decrease, pad={resolution[0]}:{resolution[1]}:-1:-1:color=black [v:0]; \
        [temp][v:0] overlay=x=0:y=0:shortest=1:enable='gt(t,1)' [v]; \
-       [0:a] asetpts=PTS+1/TB [a]" -map [v] -map [a] "{out_file}" """
+       [0:a] asetpts=PTS+1/TB [a]" -map [v] -map [a] "{{out_file}}" """
 
 cut_piece_template = "ffmpeg -ss {start_time} -to {end_time} -i \"{input_file}\" -c copy \"{out_file}\""
 
