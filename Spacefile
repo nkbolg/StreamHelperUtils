@@ -1,0 +1,13 @@
+# Spacefile Docs: https://go.deta.dev/docs/spacefile/v0
+v: 0
+micros:
+  - name: StreamHelperUtils
+    src: ./src
+    engine: python3.9
+    public_routes:
+      - "/bot/*"
+    presets:
+      env:
+        - name: BOT_TOKEN
+          description: Bot token
+          default: "deta is cool"
