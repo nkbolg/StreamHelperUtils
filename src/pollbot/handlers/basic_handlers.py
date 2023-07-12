@@ -1,18 +1,17 @@
-import asyncio
 import random
 from typing import Callable, Dict, Any, Awaitable
 
+from aiogram.enums import ParseMode, ChatType
+
+from pollbot.data import artists as static_artists
+
 import aiogram.exceptions
-import aiohttp
-import requests
-from aiogram import BaseMiddleware
-from aiogram import types, Router, F, Bot
-from aiogram.filters import Command, Text, CommandStart
+from aiogram import BaseMiddleware, Bot
+from aiogram import types, Router, F
+from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.methods import DeleteMessage
-from aiogram.types import TelegramObject, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
-
-from deta import Deta
+from aiogram.types import TelegramObject, InlineKeyboardMarkup, InlineKeyboardButton
 
 router = Router()
 
@@ -39,9 +38,7 @@ class UserRegMiddleware(BaseMiddleware):
 
 class DataLoaderMiddleware(BaseMiddleware):
     def __init__(self):
-        url = "https://cwx9fv.deta.dev/all"
-        data = requests.get(url).text
-        self.artists = data.split('\n')
+        self.artists = static_artists
 
     async def __call__(
             self,
@@ -58,19 +55,24 @@ router.message.middleware.register(DataLoaderMiddleware())
 router.callback_query.middleware.register(DataLoaderMiddleware())
 
 
-@router.message(CommandStart())
+@router.message(CommandStart(), F.chat.type == ChatType.PRIVATE)
 async def start_handler(
         message: types.Message):
-    # await message.answer_photo(
-    #     start_logo, )
-    await message.answer_photo('AgACAgIAAxkBAAMDY7NaMzFv_Z5pHFKUGB4JvpSaVmYAAtXBMRv8jJhJAAEHIZupj_7sAQADAgADeAADLQQ',
-                               'Under construction, заходи позже')
+    await message.answer('Напиши исполнителя, которого ты хочешь добавить в плейлист🤟')
 
 
-@router.message(F.from_user.id == 99988303, F.text == 'погнали')
+@router.message(F.from_user.id == 99988303, F.text == 'погнали', F.chat.type != ChatType.PRIVATE)
 async def start_poll(message: types.Message, state: FSMContext, artists: list[str]):
     await message.delete()
     await send_new_post(message, state, artists)
+
+
+@router.message(F.chat.type == ChatType.PRIVATE)
+async def text_handler(message: types.Message, bot: Bot):
+    await message.answer("Предложение отправлено")
+    await message.forward(99988303)
+    ref = message.from_user.mention_markdown()
+    await bot.send_message(99988303, ref, parse_mode=ParseMode.MARKDOWN_V2)
 
 
 async def send_new_post(message: types.Message, state: FSMContext, artists: list[str]):

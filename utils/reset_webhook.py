@@ -3,8 +3,8 @@ import asyncio
 from aiogram import Bot
 # from aiogram.types import BotCommandScopeAllChatAdministrators, BotCommand
 
-from bot.pollbot.config import get_config
-from bot.pollbot.main import get_webhook_url, get_webhook_path
+from pollbot.config import get_config
+from pollbot.main import get_webhook_url, get_webhook_path
 
 
 async def main():

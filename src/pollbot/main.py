@@ -1,16 +1,14 @@
 import logging
 
 from aiogram import Bot, Dispatcher
-from deta import Deta
-from fastapi import FastAPI
 
-from .config import get_config
-from .deta_state_srorage import DetaStateStorage
-from .handlers.basic_handlers import router as basic_router
-from .handlers.errors_handler import router as errors_router
-from .middleware import deta_middleware
-from .middleware.logging_middleware import LoggingMiddleware
-from .tables.user_table import UsersTable
+from pollbot.config import get_config
+from pollbot.deta_state_srorage import DetaStateStorage
+from pollbot.handlers.basic_handlers import router as basic_router
+from pollbot.handlers.errors_handler import router as errors_router
+from pollbot.middleware import deta_middleware
+from pollbot.middleware.logging_middleware import LoggingMiddleware
+from pollbot.middleware.upd_dumper_middleware import UpdatesDumperMiddleware
 
 
 def get_webhook_path(conf):
@@ -18,10 +16,10 @@ def get_webhook_path(conf):
 
 
 def get_webhook_url(conf, webhook_path):
-    return conf.base_url + webhook_path
+    return conf.deta_space_app_hostname + webhook_path
 
 
-def setup_app():
+def setup_dispatcher():
     """Точка входа в приложение"""
 
     # включение логирования
@@ -41,8 +39,10 @@ def setup_app():
     # создание и запуск объекта бота
     bot = Bot(token=conf.bot_token.get_secret_value())
 
-    storage = DetaStateStorage(conf.deta_project_key.get_secret_value(), conf.db_prefix)
+    storage = DetaStateStorage(conf.deta_project_key.get_secret_value())
     dispatcher = Dispatcher(storage=storage, config=conf)
+
+    dispatcher.update.outer_middleware(UpdatesDumperMiddleware(conf.deta_project_key.get_secret_value()))
 
     deta_mid = deta_middleware.DetaMiddleware(conf.deta_project_key.get_secret_value())
     dispatcher.message.middleware.register(deta_mid)
@@ -54,25 +54,13 @@ def setup_app():
     dispatcher.include_router(basic_router)
     dispatcher.include_router(errors_router)
 
-    app = FastAPI()
+    return dispatcher, bot
 
-    webhook_path = get_webhook_path(conf)
-    webhook_url = get_webhook_url(conf, webhook_path)
 
-    @app.post(webhook_path)
-    async def bot_webhook(update: dict):
-        res = await dispatcher.feed_webhook_update(bot, update)
-        return res
+def main():
+    dispatcher, bot = setup_dispatcher()
+    dispatcher.run_polling(bot)
 
-    @app.get(f"/{conf.bot_token.get_secret_value()}")
-    async def setup():
-        webhook_info = await bot.get_webhook_info()
-        if webhook_info.url != webhook_url:
-            await bot.set_webhook(
-                url=webhook_url,
-                drop_pending_updates=True
-            )
-            return "Updated"
-        return "Up to date"
 
-    return app
+if __name__ == '__main__':
+    main()

@@ -4,12 +4,8 @@
 #
 #    pip-compile
 #
-aiofiles==22.1.0
-    # via aiogram
-aiogram==v3.0b6
+aiogram==v3.0b7
     # via goods-carusel (setup.py)
-aiohttp==3.8.3
-    # via aiogram
 aiosignal==1.3.1
     # via aiohttp
 anyio==3.6.2
@@ -18,8 +14,6 @@ async-timeout==4.0.2
     # via aiohttp
 attrs==22.2.0
     # via aiohttp
-certifi==2022.12.7
-    # via aiogram
 charset-normalizer==2.1.1
     # via aiohttp
 deta==1.1.0
@@ -34,16 +28,10 @@ idna==3.4
     # via
     #   anyio
     #   yarl
-magic-filter==1.0.9
-    # via aiogram
 multidict==6.0.3
     # via
     #   aiohttp
     #   yarl
-pydantic==1.10.2
-    # via
-    #   aiogram
-    #   fastapi
 python-dotenv==0.21.0
     # via goods-carusel (setup.py)
 sniffio==1.3.0

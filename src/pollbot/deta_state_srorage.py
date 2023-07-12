@@ -8,11 +8,11 @@ from deta import Deta
 
 
 class DetaStateStorage(BaseStorage):
-    def __init__(self, deta_project_key: str, bot_name: str):
+    def __init__(self, deta_project_key: str):
         self.deta_project_key = deta_project_key
         self.deta = Deta(self.deta_project_key)
-        self.state_db = self.deta.Base(f'{bot_name}_aiogram_state')
-        self.data_db = self.deta.Base(f'{bot_name}_aiogram_data')
+        self.state_db = self.deta.Base(f'aiogram_state')
+        self.data_db = self.deta.Base(f'aiogram_data')
 
     async def set_state(self, bot: Bot, key: StorageKey, state: StateType = None) -> None:
         value = cast(str, state.state if isinstance(state, State) else state)

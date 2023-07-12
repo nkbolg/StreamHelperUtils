@@ -3,9 +3,8 @@ from pydantic import BaseSettings, SecretStr
 
 class Settings(BaseSettings):
     bot_token: SecretStr
-    base_url: str
+    deta_space_app_hostname: str
     deta_project_key: SecretStr
-    db_prefix: str
 
     # Вложенный класс с дополнительными указаниями для настроек
     class Config:

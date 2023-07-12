@@ -2,7 +2,7 @@ import os
 import subprocess
 from dataclasses import dataclass
 
-resolution = 768, 432
+resolution = 1280, 720
 
 image_template = f"""convert -gravity center -background black -fill white -size {resolution[0]}x{resolution[1]} caption:"{{}}" short.png"""
 
